@@ -42,10 +42,21 @@ Always meter Net+/Net- for continuity and check for unintended shorts to shield/
 ## 4. Termination and Biasing
 
 - Most Automated Logic controllers, routers, and integrators have **built-in network termination and bias** on Port S1/S2 and the I/O Bus, activated via the **"End of Net?" switch**.
-- **Only the device(s) at the physical ends of a segment should have End-of-Net set to Yes; all other devices on that segment must be No.** Setting more than two devices to Yes on a linear segment introduces reflection and noise that presents as intermittent comm loss under load — this is a very common self-inflicted fault after a segment is extended and the old "last device" is never switched back to No.
+- **Only the device(s) at the physical ends of a segment should have End-of-Net set to Yes; all other devices on that segment must be No.** Setting more than two devices to Yes on a linear segment introduces reflection and noise that presents as intermittent comm loss under load — this is a very common self-inflicted fault after a segment is extended and the old "last device" is never switched back to No. Internal standard: **"Two ends. No exceptions."**
 - **Exception:** if a segment end is a **DIAG485** tool with its Bias jumper in the ON position, set the controller's End-of-Net to **No** at that point and instead wire an external **120-ohm resistor** across Net+ and Net- there.
 - On FIO/MEx expander chains: the **host controller has built-in I/O bus termination and must be the first device** on the expander network; only the **last expander** in the chain should have its I/O Bus End-of-Net switch set to Yes — all others stay No.
 - **Cold-weather caution:** do not change the position of a power or End-of-Net switch at temperatures **below -22°F (-30°C)** — cold can compromise the switch contact and produce an unreliable setting that looks fine visually but doesn't make contact electrically.
+
+### Biasing — the one-bias rule
+- The trunk must have **exactly one bias source**, full stop. Newer controllers have bias built in; older installs required adding a DIAG485 specifically to provide bias.
+- **No bias source on the trunk** = unstable communications. **Multiple bias sources** = devices fighting each other for the idle-state voltage reference, producing the same kind of intermittent/garbled symptoms as a duplicate MAC. Internal standard: **"One trunk. One bias."**
+- When troubleshooting an unstable trunk, check bias in the same pass as termination — a segment can have perfect EOL termination and still be unstable from zero or duplicate bias sources.
+
+### Shield wiring — ARCnet & MS/TP
+- The comm network is the "central nervous system" of the BAS — without a reliable link to the supervisory controller (e.g., G5CE or equivalent), the whole BAS is compromised. Treat a shield-wiring fault with the same urgency as a termination fault.
+- If shielded cable is used, bond shields together **continuously** across the run, and land the shield at **one end only** — typically at the supervisory control panel. Do not land the shield on controller or signal ground. Landing the shield at every device (rather than continuity-bonding through to one ground point) can itself cause problems — check manufacturer spec before assuming "more grounding is safer."
+- Ground loops from shield grounded at multiple points are a **real, documented risk**, not a theoretical one — this is one of the more common self-inflicted MS/TP/ARCnet noise sources on retrofit jobs where a previous contractor grounded both ends.
+- Proper termination technique: shield wires meticulously twisted together, wrapped around the conductors, and neatly secured with electrical tape to form a compact, robust barrier against interference. **Verify continuity through testing** after installation — a visually neat shield termination can still be electrically open.
 
 ## 5. Baud Rate Mismatches
 
@@ -75,3 +86,4 @@ Always meter Net+/Net- for continuity and check for unintended shorts to shield/
 - [OptiFlex hardware wiring/network rules research](/home/user/workspace/research/optiflex_hardware.md)
 - [ASHRAE Standard 135 — MS/TP characteristics](/home/user/workspace/research/ashrae_standards.md)
 - [ALC/WebCTRL vendor research — ARC156/MS/TP support](/home/user/workspace/research/alc_webctrl_vendors.md)
+- Internal shop standards (integration/checkout best practices, wiring restrictions, Max Info Frames formula, Wireshark capture procedure): [internal-standards.md](internal-standards.md)

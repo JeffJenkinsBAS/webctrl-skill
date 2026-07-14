@@ -3,7 +3,7 @@ name: hvac-fundamentals
 description: "HVAC theory and thermodynamics for commercial and higher-education building controls, from a controls-engineering (BAS/DDC) perspective. Use when writing sequences of operation, sizing/checking loads, diagnosing coil or plant performance, or tuning loops involving psychrometrics, enthalpy, sensible/latent heat, dry-bulb/wet-bulb/dew point, CFM/GPM/delta-T load calcs, chiller plants (primary-secondary, variable-primary, condenser/CHW reset), cooling towers (approach/range), boilers (condensing vs non-condensing, hot water reset), campus steam/district energy, VAV AHUs and terminal boxes, static pressure or SAT trim-and-respond reset, economizers (dry-bulb/enthalpy), DOAS, energy recovery wheels/plate exchangers, fan coil units, lab exhaust/fume hood pressurization and face velocity, PID tuning, cascade control, deadbands, or hunting/oscillating loops. Skip for pure networking/BACnet wiring topics, EIKON microblock syntax, or ViewBuilder graphics authoring — use other WebCTRL skills for those."
 metadata:
   author: JeffJenkinsBAS
-  version: '1.0.0'
+  version: '1.1.0'
 ---
 
 # HVAC Fundamentals
@@ -20,6 +20,9 @@ Use this skill when:
 - Designing or troubleshooting a reset strategy — CHWST, condenser water, hot water (OA reset), SAT, or duct static pressure trim-and-respond.
 - Tuning a PID loop that's sluggish, offset, or hunting, or deciding whether a loop needs P-only, PI, or full PID.
 - Working a higher-ed-specific application: lab exhaust/fume hood pressurization, DOAS, energy recovery wheels, library/archive humidity control, dorm/classroom/auditorium load profiles, or campus steam/district energy systems.
+- Designing or reviewing **IAQ monitoring**: dehumidification process/latent load, CO2-based DCV (static vs. differential method), or garage/loading-dock CO and NO2 gas detection sequences.
+- Sizing or troubleshooting **redundant equipment** (lead/lag vs. lead/standby pumps, fans, or chillers), or building the **DDC point list** for an air handler from scratch.
+- Testing, calibrating, or troubleshooting a **CO2 sensor** (ALC ZS2P-C-ALC), or setting up a fan/pump **status point threshold**.
 - Explaining *why* a sequence works, not just how to program it — this skill supplies the underlying thermodynamics; use it alongside EIKON/WebCTRL programming skills.
 
 **Skip when**: the task is pure BACnet networking, wiring/termination standards, EIKON microblock building, ViewBuilder graphics, or WebCTRL server/database administration — those live in other skills in this pack. This skill is theory/sequence-logic, not platform mechanics.
@@ -135,6 +138,24 @@ Full load-profile table by space type (classrooms, libraries, labs, gyms, audito
 
 **Diagnosing hunting (sustained oscillation)** — check, in order: throttling range too narrow/gain too high for the system's response speed; time lags (transport/dead time, sensor time constant, actuator stroke time, coil thermal mass, linkage hysteresis); interacting loops (e.g., hunting mixed-air dampers disturbing the static pressure loop); valve/linkage hysteresis producing small limit cycles; sampling/filter artifacts aliasing with a disturbance frequency. Fix by widening throttling range/reducing gain until oscillation stops, then re-tighten cautiously. Retune seasonally — the ultimate-gain point shifts between winter/summer and part-load/full-load operation. Full diagnostic table: `references/control-loops.md`.
 
+## IAQ, Redundancy, and DDC Quick Reference
+
+| Topic | Key numbers / rule | Detail |
+|---|---|---|
+| Latent load share of total cooling | ~20–30% of total building cooling load | `references/iaq-monitoring.md` |
+| CO2 DCV — static setpoint method (default) | Fixed indoor setpoint, commonly 1,000 ppm | `references/iaq-monitoring.md` |
+| CO2 DCV — differential method (LEED/WELL/specialized IAQ only) | Indoor − outdoor Δ600 ppm | `references/iaq-monitoring.md` |
+| CO alarm thresholds | Pre-warning 25 ppm; critical 35 ppm (fans full speed); 1 detector/400 m² | `references/iaq-monitoring.md` |
+| NO2 alarm thresholds | 1 ppm → fans half speed; 5 ppm → fans full speed; mount ~20 cm above floor | `references/iaq-monitoring.md` |
+| CO2 sensor error → ventilation error | 200 ppm low ≈ 25% under-ventilated (~15 CFM/person); 200 ppm high ≈ 60% over-ventilated (~32 CFM/person) | `references/iaq-monitoring.md` |
+| ZS2P-C-ALC CO2 sensor accuracy | ±30 ppm or 3% (400–1,250 ppm); ±5%+30 ppm (1,250–2,000 ppm) | `references/iaq-monitoring.md` |
+| CO2 sensor background self-cal | Needs ≥4 hrs/day unoccupied; up to 21 days to fully calibrate; 1-hr power-up settle | `references/iaq-monitoring.md` |
+| Lead/lag | Both units can run together; lag adds real capacity | `references/redundancy-and-ddc.md` |
+| Lead/standby | Standby fully idle until lead fails; no added capacity | `references/redundancy-and-ddc.md` |
+| Lead/lag vs. lead/standby mismatch | Sizing basis must match control logic — see 2019 high-rise HW plant case study | `references/redundancy-and-ddc.md` |
+| Fan/pump status threshold | Set "True if > Constant" just below actual observed running current | `references/redundancy-and-ddc.md` |
+| Field temperature sensors | 10K ohm @ 77°F thermistor, not polarity-sensitive | `references/redundancy-and-ddc.md` |
+
 ## Reset Strategy Guidance
 
 Reset logic recurs across the plant and airside because most equipment is oversized for the majority of operating hours. The pattern is always **trim-and-respond**: watch the most-demanding zone/coil/valve, and back off setpoint only as far as that single worst-case point allows — never based on average conditions.
@@ -159,6 +180,8 @@ Read these when you need depth beyond the quick-reference tables above — each 
 - **`references/heating-plants.md`** — Condensing vs. non-condensing boiler efficiency curves and the ~130°F return-temperature threshold, hot water OA reset, hybrid boiler plants, campus steam systems (PRV stations, steam traps), heat recovery chillers, and LTHW district energy examples (Stanford, Western University). Read when working boiler plant, steam distribution, or heat-recovery sequences.
 - **`references/airside-systems.md`** — VAV AHU SAT/SP resets in full ASHRAE Guideline 36 T&R detail, VAV box pressure-independent cascade control, DOAS "cold not neutral" and constant-dew-point strategies, energy recovery wheels vs. plate exchangers (cross-contamination tradeoff), FCUs, lab exhaust/fume hood pressurization and face-velocity control (ASHRAE 110 / Z9.5), higher-ed space load-profile table, and library/archive humidity control. Read for any airside sequence or higher-ed application question.
 - **`references/control-loops.md`** — Full PID theory (P/I/D roles, integral windup, anti-windup practice), both tuning methods in full step detail, cascade control theory, deadband sizing guidance, and the complete hunting-diagnosis checklist. Read before tuning or troubleshooting any loop.
+- **`references/iaq-monitoring.md`** — Understanding dehumidification (latent load, SHR, traditional and alternative dehumidification processes), CO2 DCV strategies (static vs. differential method with ppm thresholds), CO/NO2 monitoring thresholds and sensor placement, and CO2 sensor testing/calibration (ZS2P-C-ALC specifics, background self-calibration behavior). Read before specifying or troubleshooting any IAQ/DCV/gas-detection sequence.
+- **`references/redundancy-and-ddc.md`** — Lead/lag vs. lead/standby definitions and failure modes (including the 2019 high-rise HW plant case study), the full DDC point list for an air handler, and field procedures for status-point threshold setup, lead/standby rotation testing, and temperature sensor troubleshooting (10K thermistor notes). Read before sequencing or commissioning any redundant equipment or AHU point list.
 
 ## Troubleshooting by Symptom
 
@@ -188,3 +211,6 @@ Quick triage table for common field complaints — points to the reference file 
 - **Applying full PID everywhere "to be safe."** Per Sellers, P-only is correct for zone temperature and limit loops; adding unneeded I or D increases hunting risk without a real precision benefit. Reserve PI for loops where offset costs real energy (CHWST, HWST, static pressure).
 - **Ignoring VAV fume hood minimum-flow floors.** Face-velocity control alone isn't sufficient — Z9.5 requires a minimum exhaust volume (≥25 cfm/ft² of hood work surface) even sash-closed, and this floor must be programmed as a hard minimum independent of the face-velocity loop.
 - **Treating classroom/library/lab/auditorium loads as interchangeable.** SHR, OA rates, and ventilation drivers differ sharply by space type (see `references/airside-systems.md`) — labs are governed by exhaust safety code, not thermal comfort, and auditoriums run SHR as low as 0.45 at peak occupancy.
+- **Trusting the spec's "lead/lag" or "lead/standby" label without checking equipment sizing.** The two terms describe different redundancy strategies (lag adds real capacity; standby does not) — verify which one the mechanical design actually sized for before programming rotation logic, or risk the 2019 high-rise HW plant failure pattern in `references/redundancy-and-ddc.md`.
+- **Installing a ZS CO2 sensor in a continuously-occupied space.** The sensor's automatic background calibration needs ≥4 hrs/day unoccupied to find a clean 400 ppm reference — skipping this leads to permanent drift that looks like a sensor defect but is actually a siting error.
+- **Setting a fan/pump status "True if > Constant" threshold to a round number instead of the actual observed running current.** This either misses real failures (threshold too low) or false-alarms on normal current variation (threshold too high) — set it just below the field-verified running amperage.

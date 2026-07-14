@@ -6,6 +6,8 @@ WebCTRL runs on Windows Server 2019/2016/2012R2, RHEL 7.4, Windows 10/8 Pro/Ente
 
 Currently supported/patched releases: **WebCTRL Cloud, v10.0, v9.0, v8.5, and v8.0** ([WebCTRL Version Comparison](https://www.automatedlogic.com/en/media/WebCTRL-Version-Compare_final_tcm702-275459.pdf)). Any server still on an earlier release is out of patch support — flag this during any site assessment.
 
+For v10-specific feature detail (Trailguide, smarter BACnet discovery, live/hosted backups, ACxelerate 3.0, Predictive Insights) and Test & Balance v10, see `references/webctrl-10.md`. For full backup/migration/WaaS/PostgreSQL/license/patch field procedures, see `references/server-lifecycle.md`.
+
 ## Editions & Point Limits
 
 | Edition | Point Limit | Positioning |

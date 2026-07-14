@@ -6,6 +6,47 @@ Reference for turning a completed SOO into commissioning deliverables: functiona
 
 OPR (pre-design) → Basis of Design → Division 23/25 specs (often citing Guideline 36 sections directly) → BAS submittals/BTL PICS review → installation → **point-to-point verification** → **Functional Performance Testing (FPT)** exercising the SOO's built-in override/test-mode hooks → Commissioning Report → Systems Manual/O&M turnover ([ASHRAE practical sequence, per Guideline 0/Standard 202](https://cxplanner.com/commissioning-101/ashrae-guideline-0)). A sequence that omits override/test-mode capability (see SOO review checklist Section 2.9) creates a commissioning gap discovered too late to fix cheaply — catch it at the SOO review stage, not at FPT.
 
+### 1.1 The Formal Cx-Authority (CxA) Process Behind This Chain
+
+The chain above is what the field tech and controls contractor execute against — but on any project with a dedicated Commissioning Authority (CxA), that role owns a broader, standards-defined process spanning the full project lifecycle, not just the BAS scope. Understanding the CxA's formal process matters because it tells you what documentation and hooks the CxA will expect from the controls submittal and SOO, before FPT day.
+
+**CxA role, per [ASHRAE Standard 202-2013](https://www.ashrae.org/file%20library/technical%20resources/standards%20and%20guidelines/standards%20addenda/202_2013_b_20180308.pdf)**: an independent third party responsible for planning, directing, and documenting the commissioning process across all phases — predesign through end of warranty. Minimum CxA activities per Standard 202:
+- Initiate the commissioning process
+- Facilitate development of the **Owner's Project Requirements (OPR)**
+- Develop and maintain the Commissioning (Cx) Plan
+- Perform design reviews and submittal reviews
+- Develop pre-functional checklists and functional test procedures
+- Direct, witness, and document testing
+- Maintain an issues/resolution log
+- Assemble the systems manual
+- Conduct/verify training
+- Produce the final Commissioning Report
+
+**Design and submittal reviews**: the CxA reviews design documents against the OPR before construction documents are issued for any commissioned system — this happens *before* the controls submittal is even drafted. Submittal review runs concurrently with (but separately from) the design engineer's own review: the engineer checks code/design compliance, the CxA checks **OPR compliance**. A controls submittal can pass the engineer's review and still get flagged by the CxA if it doesn't demonstrably satisfy the OPR.
+
+**Pre-functional / construction checklists**: a form verifying that materials and components are on-site, correctly installed, functional, and OPR-compliant — developed after submittal approval, executed during installation. This is static/visual/functional confirmation performed *before* dynamic FPT — think of it as the CxA's version of the point-to-point checklist in Section 3 below, verified on a sampling basis rather than 100% (contrast with Automated Controls' internal 100% standard, Section 1.2). Sources: [ASHRAE Standard 202](https://www.ashrae.org/file%20library/technical%20resources/standards%20and%20guidelines/standards%20addenda/202_2013_b_20180308.pdf), [ASHRAE Guideline 0-2005 Addenda](https://www.ashrae.org/file%20library/technical%20resources/standards%20and%20guidelines/standards%20addenda/g0_2005_a_b_c_d_final.pdf).
+
+**Functional Performance Testing (FPT)**: dynamic testing exercising the full sequence of operation — normal operating modes, equipment staging, failure modes, alarms, interlocks. FPT is only scheduled once the GC has submitted complete QC documentation (checklists, startup reports, preliminary O&Ms, as-built drawings, preliminary TAB report). The CxA verifies independently and does **not** debug live during the test — a failed FPT step becomes a deficiency (Section 6), not an on-the-spot programming session. Source: [Dartmouth General Commissioning Requirements](https://www.dartmouth.edu/fom/docs/2023_construction_guidelines/01_91_13_general_commissioning_requirements.pdf), [LAWA Division 28 spec](https://www.lawa.org/sites/lawa/files/documents/2017%20Division%2028%20Non-IT.pdf).
+
+**Seasonal, deferred, and warranty-period testing**: CxA activity continues through the end of the warranty period. Standard 202 requires seasonal, delayed, or otherwise incomplete testing to be completed within this window, timed to actual weather/load/occupant-interaction conditions the initial FPT couldn't create on demand (e.g., a heating-mode FPT step that can only be fully validated in winter). Source: [ASHRAE Standard 202](https://www.ashrae.org/file%20library/technical%20resources/standards%20and%20guidelines/standards%20addenda/202_2013_b_20180308.pdf).
+
+**Ongoing / Retro-Commissioning (RCx) / Monitoring-Based Commissioning (MBCx)**: commissioning doesn't end at warranty close-out on a well-run building. Retro-commissioning follows a planning → investigation → implementation → hand-off cycle on existing buildings. **Continuous Commissioning™** (origin: Texas A&M Energy Systems Laboratory) and **MBCx** leverage the BAS's own trend/alarm infrastructure plus fault-detection-and-diagnostics (FDD) analytics to keep sequences performing as designed long after turnover — this is exactly the kind of ongoing verification the G36 request-hours accumulator and FDD alarm tuning (Section 4/5 below) feed into. Source: [DOE FEMP O&M Best Practices Guide, Ch. 7](https://www1.eere.energy.gov/femp/pdfs/om_7.pdf).
+
+**The governing document set**: **ASHRAE Guideline 0** (generic Cx process applicable to all systems, all phases), **Guideline 1.1** (HVAC&R-specific, evolved from the original Guideline 1-1996), and **Standard 202-2013** (the normative, "shall"-language version defining OPR, Basis of Design (BOD), Cx Plan, design review, submittal review, checklists, testing, and the final Cx Report). Standard 202 also introduces the **Current Facility Requirements (CFR)** concept — the existing-building analog to OPR, used for retro-commissioning and ongoing Cx on buildings that never had a formal OPR at initial construction. Sources: [ASHRAE Bookstore — Commissioning](https://www.ashrae.org/technical-resources/bookstore/commissioning), [Guideline 1-1996 process diagram](https://www.scribd.com/document/498680655/Guideline-1-1996-Commissioning), [ASHRAE Standard 202](https://www.ashrae.org/file%20library/technical%20resources/standards%20and%20guidelines/standards%20addenda/202_2013_b_20180308.pdf), [HVAC Commissioning Guidelines](https://www.scribd.com/document/599853580/HVAC-Commissioning).
+
+**How this ties back to the controls contractor's SOO**: the CxA's design/submittal review checks the SOO against the OPR before it's even built; the pre-functional checklist parallels (but doesn't replace) the point-to-point checklist in Section 3; FPT scripts should be written so they map directly onto the functional test scripts in Section 2. If a project has a formal CxA, expect the SOO's override/test-mode points (SOO review checklist Section 2.9) to be exercised by someone outside the controls contractor's own team — write them assuming an outside auditor, not just your own commissioning tech, will use them.
+
+### 1.2 Automated Controls' Internal 100% Commissioning Standard
+
+Third-party CxAs commonly sample **10%–30%** of VAV boxes or typical/repetitive equipment during pre-functional and functional checks — a statistically-driven sampling approach that's standard industry practice for a third party covering an entire building's systems (T&B, envelope, life-safety interfaces, and controls all at once).
+
+**Automated Controls' own internal standard is 100%** — every piece of equipment must be touched, every sensor visually inspected and verified or calibrated where applicable, before that equipment is considered ready for third-party Cx. Concretely:
+- Every VAV box gets a visual inspection: damper rotation direction, airflow tube connections, discharge sensor placement, valve stroke (full open/full closed observed, not assumed from a BAS graphic reading).
+- **Never assume a VAV box is controlling correctly from discharge temperature alone** — a plausible-looking discharge temp can mask a damper that isn't actually modulating, an airflow sensor reading a stale value, or a reheat valve stuck partially open.
+- AHU/chiller plant checkout includes verifying wire labels match function, sensor accuracy/placement, and — with top priority — safety devices: **High Static, Low Static, and Freezestat are never locked out and always left fully functional** through the entire commissioning process, even when other points are temporarily forced for testing.
+
+**Why this matters for the third-party CxA relationship**: the 3rd-party Cx agent should **not** be the one finding wiring or calibration issues — those are expected to already be resolved by the internal 100% pass before the CxA ever arrives. Any design or sequence-of-operation *question* (as opposed to an installation defect) should be routed through the PM and PE before it reaches the 3rd-party Cx agent — don't let field-level SOO ambiguity surface for the first time during a formal FPT witnessed by the CxA.
+
 ## 2. Functional Test Script — Full Structure and Examples
 
 Use the eight fields from SKILL.md Section 5.1 for every test. Below are worked examples by system type; adapt values to the actual project sequence.
@@ -134,3 +175,87 @@ Use the table format from SKILL.md Section 5.3. Practical tips:
 - Tie every deficiency, where possible, to a specific failed acceptance criterion from a functional test script (Section 2 above) — this creates a clean audit trail from OPR → sequence → test → deficiency → retest.
 - Retest and close out Critical and Major deficiencies before occupancy/turnover; Minor deficiencies may be tracked into the warranty period but should still be assigned a responsible party and target date, not left open indefinitely.
 - Feed recurring deficiency patterns (e.g., "reheat valves leaking on X% of VAV boxes") back into future SOO templates and review checklists — commissioning findings should improve the next project's sequence, not just close out the current one.
+
+## 7. SOO Verification Workflow (Commissioning Step 5) — Field Logic-Page Checks
+
+This is the field-technician-level verification that happens after point-to-point is complete and before the sequence is considered ready for functional testing or a third-party CxA visit. It picks up right where Section 3 (point-to-point) leaves off.
+
+### 7.1 Prerequisites Before Starting
+- Panel inspection complete.
+- Submittals reviewed and on hand.
+- Module powered and downloaded.
+- I/O assigned in the database.
+- Point-to-point complete (Section 3).
+- Points List Report generated and stored with the project record.
+- All I/O unlocked (no forced/locked test values left over from point-to-point).
+
+### 7.2 What "Commissioning the Programming" Means
+Watch the **live Logic page** side-by-side with the SOO's stated requirements — this is not a paperwork exercise, it's watching real microblock values change in real time against what the sequence says should happen. Specific things to verify:
+- Values may need to be temporarily locked during this process — **track every lock and every delay-timer change**. WebCTRL's Locked Values report captures locked points, but **there is no equivalent report for delay-timer changes** — keep your own note of any timer you adjust during commissioning so it can be reverted or intentionally left at the new value with a documented reason.
+- Confirm PID loops open and close correctly through their full range, not just that they move in the right direction.
+- Confirm alarm blocks and their time delays are actually wired and firing at the stated setpoint, not just present in the program.
+- Confirm safeties shut down and interlock correctly — this is the highest-priority check in the whole workflow (see Section 1.2's non-negotiable High Static/Low Static/Freezestat rule).
+
+### 7.3 Logic Page Detailed Checks
+
+**Requests / Run Conditions**: the "Run Cmnd" BV microblock should show **ON** exactly when all stated run conditions are actually met — not most of them, not "close enough." Perform a **loop freeze test**: lock the OA temperature true-point to **30°F** to force the system into freeze-protection mode and confirm every freeze-protection action actually fires (fan stop, OA damper close, HW valve open — per whatever the SOO's Safeties section states) rather than assuming the freezestat logic works because the microblock diagram looks correct.
+
+**Loop Monitor**: verify supply and return temperature thresholds are being evaluated against real, believable values — a loop that "looks stable" on a trend can still be comparing against a stale or mis-scaled threshold.
+
+**VFD Pressure Control** (duct static pressure or hydronic DP loop): verify the DP sensor is feeding a PID block correctly, and check the PID's actual tuning values, not just that the loop is "running":
+- **Startup/checkout PID values: P = 2, I = 1, D = 0, Interval = 20 seconds** — then tune further from this starting point once the loop is stable.
+- **Warning — the untuned default is P = 20, I = 5, D = 0.** At these values, the loop essentially operates as an open/close bang-bang controller: 0% → 100% → 0%, with no real modulation in between. An untuned PID at these default values is easy to spot on a trend (sawtooth/square-wave output pattern) — if you see that pattern, the loop was never actually tuned, regardless of what the program's PID block claims its mode is.
+
+**Lead/Standby System Test** (cross-reference `hvac-fundamentals` skill's `references/redundancy-and-ddc.md` for the lead/lag vs. lead/standby distinction — get this right before testing):
+1. Put the logic in **AUTO**.
+2. Turn the lead unit off **at the disconnect** — a true hard failure, not a BAS-commanded stop.
+3. Confirm the system swaps to the lag/standby unit.
+4. Confirm an alarm is generated for the failure event.
+5. Adjust start/stop timing as needed so the building is maintained through the failure/rotation transition without an unacceptable gap in service.
+
+**CT (Current Transducer) Status Setup**: verify the CT is terminated and correctly assigned; start the monitored equipment via AUTO or lock start/stop; if VFD-driven, lock speed to minimum for a stable reading; check the actual AI amperage at the drive/starter; set the "True if > Constant" microblock threshold **just below** the actual current reading observed in the field — not an arbitrary round number.
+
+**Temperature Sensor Note**: most field temperature sensors are **10K ohm @ 77°F thermistors**, not polarity-sensitive. If a duct probe reading looks wrong, pull the thermistor and measure it against a second reference (another sensor or an IR gun) rather than assuming a wiring polarity problem.
+
+### 7.4 Where This Sits Relative to Third-Party Commissioning
+This workflow is the **initial commissioning performed by the field tech** — point-to-point plus SOO checks. The 3rd-party Cx agent's visit verifies this work in combination with T&B (test and balance), pump/motor, and envelope data for the whole building. As stated in Section 1.2: the 3rd-party agent should not be finding wiring or calibration issues at this stage — those should already be resolved. Any design or SOO question that surfaces during this workflow goes through the PM and PE before it reaches the 3rd-party Cx agent, not directly into a CxA-witnessed FPT.
+
+## 8. SOO Simplification — The 7-Step Field Technique
+
+Long, dense sequences of operation are hard to hold in your head while troubleshooting live in a mechanical room. Use this technique to convert a wall-of-text SOO into something you can actually work from in the field. This is a distinct skill from *writing* a compliant SOO (Section 1 of SKILL.md) — it's how you *consume* one, whether it's your own or an engineer's submittal.
+
+**Step 1 — Read once, without stress.** Read the entire sequence start to finish with no goal except getting the overall shape of what the system does. Don't take notes yet, don't try to memorize setpoints — just build a mental map of the equipment and its general behavior.
+
+**Step 2 — Break it into chunks.** Re-read and mentally (or physically) divide the sequence into its functional phases:
+- Start-up / Initialization
+- Occupied / Unoccupied
+- Normal Operation
+- Setpoint Control
+- Economizer / Free Cooling
+- Safety / Fault Modes
+- Shutdown
+
+Most sequences map cleanly onto this list even if the original document doesn't use these headers — this is the same functional grouping SKILL.md Section 1's mandatory structure enforces when *writing* a sequence, applied here to *decode* one.
+
+**Step 3 — Highlight Inputs, Outputs, and Conditions.** Go chunk by chunk and mark every sensor/input, every commanded output, and every conditional ("if X then Y") statement. Example transformation: a sentence like *"The supply fan shall run continuously during occupied hours provided the freezestat is not tripped and no smoke alarm is active"* becomes:
+- **Input**: schedule (occupied/unoccupied), freezestat status, smoke alarm status
+- **Output**: supply fan run command
+- **Condition**: fan runs IF (occupied) AND (freezestat normal) AND (smoke alarm normal)
+
+**Step 4 — Create a flowchart or step list.** Convert the highlighted inputs/outputs/conditions from Step 3 into a simple flowchart or numbered step list per chunk. You don't need software for this — a hand-sketched flowchart in a field notebook is enough; the goal is a visual you can glance at instead of re-reading paragraphs.
+
+**Step 5 — Cross out the fluff, reword what's left.** Strip filler language and restate each requirement in plain, numeric terms. Examples:
+- *"The system shall maintain appropriate comfort conditions as required"* → cross out entirely, or replace with the actual numeric setpoint if one exists elsewhere in the document (and flag it if one doesn't — see SKILL.md Section 2.2 language rules).
+- *"The economizer shall operate when conditions are favorable"* → reword to *"Economizer enabled when OAT < 65°F and OAT < RAT"* (or whatever the actual stated logic is).
+
+**Step 6 — Match what you read against the field and the graphics.** Walk the actual mechanical room and BAS graphics against your simplified version. Flag any mismatch between the written sequence and what's actually installed/programmed to the PM or PE immediately — don't quietly reconcile a discrepancy by assuming the field is right and the paper is wrong, or vice versa; that's a decision for the PM/PE, not a field judgment call.
+
+**Step 7 — Write a one-page "Tech Summary" in your own words.** Condense the whole sequence into a single page covering: system overview, start/stop conditions, normal operating setpoints, and the safety/fault responses. This becomes your fast-reference sheet for troubleshooting calls — you should never need to re-read the full submittal-length SOO to answer "why did this fan just shut off."
+
+**Example — AHU-1 Tech Summary** (illustrating the level of compression Step 7 should reach):
+> AHU-1 (VAV, serves 3rd floor). Starts: occupied schedule OR BAS override, AND freezestat normal, AND smoke normal. SAT setpoint 55°F, reset up to 65°F via T&R on zone valve/damper demand. Economizer enabled below 65°F OAT (dry-bulb) with RA comparison; locks out above high-limit. Freezestat trip <38°F: fan off, OA damper closed, HW valve open, manual reset at panel. Static pressure SP 1.2 in.w.g., T&R band 0.4–1.5. Unoccupied: fan off, freeze protection remains active.
+
+**Additional field tips**:
+- **Color-code by mode** on printed sequences or flowcharts (e.g., green = occupied, blue = unoccupied, red = safety/fault) — speeds up visual scanning during a live troubleshooting call.
+- **Ask the PE to walk the logic with you** if a section genuinely doesn't parse, rather than guessing at design intent — this is faster and more reliable than reverse-engineering intent from ambiguous language.
+- **Keep a lessons-learned binder** of simplified sequences and the mismatches/ambiguities found during Step 6 — this becomes institutional knowledge that improves how the next sequence gets written or reviewed, the same feedback loop described in Section 6's deficiency-list practical use.

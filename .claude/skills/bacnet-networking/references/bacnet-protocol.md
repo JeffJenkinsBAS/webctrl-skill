@@ -61,6 +61,63 @@ Device Profiles are named, minimum sets of BIBBs a device must support to claim 
 - **Foreign Device Registration (FDR)** lets a single device (not a full subnet) register with an existing BBMD to receive broadcasts — useful for a remote workstation, laptop, or single roaming device that doesn't warrant standing up its own BBMD.
 - G5RE, G5CE, OFHI-A, and OF1628/OFBBC all support BBMD and/or FDR at the Gig-E port; check the specific model's manual for how many BBMD-capable IP networks it can host simultaneously (some support 2).
 
+## 7. Formatting a BACnet Address (Third-Party Integration Microblocks)
+
+The BACnet standard allows multiple valid address formats for any microblock reading/writing a third-party BACnet point. **Most third-party integration communication problems trace back to incorrect data or typing errors in the microblock's Address field** — check this before suspecting wiring or the remote device.
+
+**Note:** numeric values can be entered in decimal or hexadecimal — type `0x` before a hex value.
+
+**Device/network addressing formats:**
+| Format | Example |
+|---|---|
+| Device instance number | `bacnet://2010/…` |
+| Network number: MAC address | `bacnet://1234:35/…` |
+| Network number: MAC address (hex) | `bacnet://1234:0x23/…` |
+| Wildcard (`*`) — subscribes to nearest responder | `bacnet://*/…` |
+
+Wildcard (`*`) notes: usable in Network Input and Total Analog microblock address fields only; restricted to the `present_value` property (the default when no property is specified); requires driver v3.04 or later.
+
+**Object identification (after the device portion):**
+| Format | Example |
+|---|---|
+| Object type: instance number | `bacnet://…/ai:2` |
+| BACnet object name | `bacnet://…/MyObject` |
+
+Object type abbreviations (not case sensitive):
+
+| Use | Or | Type # |
+|---|---|---|
+| ai | analog-input | 0 |
+| ao | analog-output | 1 |
+| av | analog-value | 2 |
+| bi | binary-input | 3 |
+| bo | binary-output | 4 |
+| bv | binary-value | 5 |
+| dev | device | 8 |
+| msi | multistate-input | 13 |
+| mso | multistate-output | 14 |
+| msv | multistate-value | 19 |
+
+Every object in a controller has a unique instance number, regardless of which control program uses it.
+
+**Property (optional)** — needed only when reading/writing a property other than `present_value`:
+| Format | Example |
+|---|---|
+| BACnet property identifier | `bacnet://…/…/cov_increment` |
+| BACnet property identifier # | `bacnet://…/…/22` |
+| Property identifier (with index) | `bacnet://…/…/priority-array(12)` |
+| Property identifier # (with index) | `bacnet://…/…/87(12)` |
+
+**Priority (optional)** — write at a priority other than 16 using `@` followed by a priority number (1–16). Example: `bacnet://…/…/…@3`. **Priority levels 1 and 2 are reserved for manual and automatic life safety commands** — never use them for routine control writes.
+
+**Examples of full BACnet addresses:**
+```
+bacnet://MyDevice/ai:2
+bacnet://1234:0x23/analog-input:2/priority-array(12)@8
+bacnet://2499:0x00E0C90047CA/bi:3
+bacnet://2436:192.168.47.36:47806/0:2
+```
+
 ## Sources
 
 - [ASHRAE BACnet Bookstore](https://www.ashrae.org/technical-resources/bookstore/bacnet)

@@ -2,6 +2,8 @@
 
 These are field-proven patterns expressed as pseudo-logic — adapt exact microblock wiring to the specific job, but keep the structure and reasoning intact. Build each as a custom/nested microblock once proven, so it's reusable rather than re-wired from scratch on the next job.
 
+For tuning any PID block referenced below, see `references/field-tuning-and-commissioning.md` (field starting values P=2/I=1/D=0 vs. untuned default P=20/I=5/D=0).
+
 ## 1. Occupancy Arbitration
 
 Multiple occupancy sources often need to be reconciled into one authoritative state: schedule (Time Clock), local override button (sensor), and a network/BMS override.

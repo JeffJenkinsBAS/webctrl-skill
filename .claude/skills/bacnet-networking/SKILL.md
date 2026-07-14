@@ -3,7 +3,7 @@ name: bacnet-networking
 description: "Design and troubleshoot BAS networks: BACnet/IP, MS/TP, ARC156, ARCnet, BACnet/SC, Rnet, and Modbus integration. Use for network architecture (segment sizing, network numbering, router/BBMD placement), addressing (MAC address, device instance), broadcast/unicast traffic, comm loss and duplicate-address troubleshooting, token-passing issues, wiring/termination faults, and WebCTRL console diagnostics (commstat, tracert, count devices). Trigger phrases: BACnet, MS/TP, ARC156, device instance, MAC address, network number, BBMD, foreign device, who-is, COV, router, broadcast storm, comm loss, token passing, duplicate address, BACnet/SC certificate. Skip when the task is EIKON program logic, sequence-of-operation authoring, or ViewBuilder graphics — use eikon-programming or webctrl-platform instead."
 metadata:
   author: JeffJenkinsBAS
-  version: '1.0.0'
+  version: '1.1.0'
 ---
 
 # BACnet Networking
@@ -71,6 +71,7 @@ Modbus is the shop's secondary protocol, used to integrate third-party equipment
 - Modbus TCP/IP rides the same Gig-E port as BACnet/IP on most integrators — no separate physical run needed for a TCP-based Modbus device.
 - **Capacity varies significantly by model** — this determines which panel to specify for a Modbus-heavy job: OFHI-A supports up to 1,000 Modbus points vs. G5CE's 25, making OFHI-A the default choice for chiller/meter/VFD-heavy integrations. OF1628 supports 200 Modbus points, OFBBC 200, G5RE and OFCSR-E2 **none** (pure routers, no Modbus support on either port).
 - Because Modbus devices don't participate in BACnet's Who-Is/I-Am discovery, they must be manually mapped point-by-point into a BACnet-visible object on the integrator — budget engineering time for this; it isn't auto-discovered the way a native BACnet device is.
+- **Full step-by-step Modbus integration guide** (EIKON Network I/O microblock setup, serial vs. Ethernet wiring, register types, PuTTY/Wireshark troubleshooting, error-code table): [references/internal-standards.md](references/internal-standards.md), Section 3.
 
 ---
 
@@ -110,6 +111,7 @@ Note every network number (IP or field segment) in the entire job is unique, and
 - On MS/TP and ARC156, broadcasts consume token-passing bandwidth that every other device is waiting on — a segment saturated with broadcast traffic shows up as sluggish response, delayed COV, or apparent comm loss even though no single device has failed.
 - **Prefer confirmed COV (Change of Value) subscriptions over polling.** Polling (repeated ReadProperty requests) generates constant unicast traffic that scales with poll frequency × point count × device count; COV only generates traffic when a value actually changes and confirms delivery. This is a standing design principle for this shop — always default to COV for graphics/trend bindings unless a specific device doesn't support it.
 - Minimize router-crossing broadcasts: keep BBMD configuration correct (Section 1, step 4) so broadcasts don't loop, and don't put unrelated devices on an oversized flat segment just because there's spare wire — broadcast domains should map to logical segments, not convenience.
+- **Shop-standard refresh timer setting: use a refresh time ending in `:01` (e.g. `1:01`, `5:01`) to force Confirmed COV** on all new integrations and point refresh configurations — this is the effective standard, not just a preference. Quick rule of thumb: `≤30s` = polling, `>30s` = unconfirmed COV, `X:01` = confirmed COV, `>10m` = becomes the resubscription interval. Full decision table, subscription limits (1,000 confirmed COV subscriptions per controller on driver v6.00a-067+), and same-segment vs. cross-router behavior: [references/internal-standards.md](references/internal-standards.md), Section 2.
 
 ---
 
@@ -125,7 +127,7 @@ Note every network number (IP or field segment) in the entire job is unique, and
 
 ## 5. MS/TP vs. ARC156 Comparison
 
-Both protocols share the same physical wiring spec but differ in speed, defaults, and where they're used.
+Both protocols share the same physical wiring spec but differ in speed, defaults, and where they're used. **Topology is non-negotiable: daisy-chain only** — no stars, no T-taps, no home-runs. Start at the controller's port, end at the highest-MAC-address device. See [references/internal-standards.md](references/internal-standards.md), Section 1 for the full integration/checkout standard (one-trunk-one-bias rule, shield grounding, staged commissioning).
 
 | Characteristic | MS/TP | ARC156 (ARCNET) |
 |---|---|---|
@@ -196,6 +198,8 @@ Access via **Ctrl+M → console** in WebCTRL, then:
 
 Run `commstat` before opening a panel. If `commstat` shows the whole segment down, don't start pulling wire nuts on one VAV box — go straight to the router/segment power and termination.
 
+> **Controller LED codes and firmware-recovery procedures (DSC-button, rotary-911) live in the field-commissioning skill, not here** — this skill stops at the wire/packet layer. Cross-reference by skill name only.
+
 ### Field verification steps (do these, don't just theorize)
 1. Pull the actual device count and expected device count for the segment — compare against `count devices`.
 2. Meter Net+/Net- for correct voltage/continuity at the suspect device and at both physical ends of the segment.
@@ -208,9 +212,10 @@ Run `commstat` before opening a panel. If `commstat` shows the whole segment dow
 
 ## Reference Files
 
-- **[references/bacnet-protocol.md](references/bacnet-protocol.md)** — Read when you need the object/service model, BIBBs, device profiles (B-BC/B-AAC/B-ASC/B-OWS), PICS review, BTL listing verification, or Who-Is/I-Am and BBMD/foreign device registration mechanics in depth.
+- **[references/bacnet-protocol.md](references/bacnet-protocol.md)** — Read when you need the object/service model, BIBBs, device profiles (B-BC/B-AAC/B-ASC/B-OWS), PICS review, BTL listing verification, Who-Is/I-Am and BBMD/foreign device registration mechanics, or the full BACnet address-formatting syntax (device/network/object/property/priority) for third-party integration microblocks.
 - **[references/bacnet-sc.md](references/bacnet-sc.md)** — Read when a spec calls for BACnet Secure Connect, when scoping a cybersecurity-reviewed campus/healthcare job, or when asked about TLS certificates, hub-and-spoke topology, and current BACnet/SC support status in the ALC/OptiFlex ecosystem.
-- **[references/mstp-troubleshooting.md](references/mstp-troubleshooting.md)** — Read for deep MS/TP troubleshooting: token-passing mechanics, duplicate MAC symptoms, wiring/termination/biasing faults, baud mismatches, max device counts, and capturing traffic with Wireshark/MS/TP analyzer tools.
+- **[references/mstp-troubleshooting.md](references/mstp-troubleshooting.md)** — Read for deep MS/TP troubleshooting: token-passing mechanics, duplicate MAC symptoms, wiring/termination/biasing/shield-grounding faults, baud mismatches, max device counts, and capturing traffic with Wireshark/MS/TP analyzer tools.
+- **[references/internal-standards.md](references/internal-standards.md)** — Read for the shop's internal MS/TP integration/checkout standards (daisy-chain-only topology, one-trunk-one-bias rule, 38400 baud standard), the Confirmed COV refresh-timer standard, the full Modbus integration guide, ARC156/MS/TP/Ethernet node-count and length limits (incl. the Max Info Frames formula), Ethernet topology tradeoffs (daisy-chain/star/ring), the ARCnet/MS/TP Wireshark capture procedure, and Cimetrics B3075 IP-to-IP router setup. This is the go-to file when standardizing a new job's network settings or preparing a support-case packet capture.
 
 ---
 

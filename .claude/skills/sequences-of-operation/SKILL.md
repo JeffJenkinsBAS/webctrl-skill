@@ -3,7 +3,7 @@ name: sequences-of-operation
 description: "Write, rewrite, and review sequences of operation (SOO) for commercial and higher-ed HVAC systems, plus commissioning support. Use when the user says: sequence of operation, SOO, write a sequence, review this sequence, AHU sequence, VAV sequence, chiller plant sequence, boiler sequence, trim and respond, Guideline 36 sequence, commissioning checklist, functional test, point list, points list, or submittal review. Covers AHU/VAV/DOAS/lab exhaust airside, chiller/boiler plant waterside, ASHRAE Guideline 36 pre-engineered sequences, and functional performance testing for commissioning. Does not cover EIKON block-level programming syntax or WebCTRL graphics build-out — see the eikon-programming and webctrl-platform skills for that."
 metadata:
   author: JeffJenkinsBAS
-  version: '1.0.0'
+  version: '1.1.0'
 ---
 
 # Sequences of Operation (SOO)
@@ -18,6 +18,9 @@ Use this skill when asked to:
 - Decide whether to use **ASHRAE Guideline 36** pre-engineered sequences vs. a conventional sequence, or explain trim-and-respond logic.
 - Build a **functional test script**, **point-to-point checklist**, or **deficiency list** for commissioning.
 - Populate or QA a **point list / points list** against a sequence's stated inputs, outputs, and alarms.
+- Run the **field SOO verification workflow** (Logic-page checks, PID startup values, lead/standby rotation test, CT status setup) after point-to-point and before functional testing.
+- **Simplify** a dense, submittal-length SOO into a field-usable tech summary.
+- Explain how the formal **Commissioning Authority (CxA) process** (OPR/BOD, design/submittal review, pre-functional checklists, FPT, Standard 202) relates to the controls contractor's own commissioning scope.
 
 **Skip when:** the task is EIKON microblock logic construction (load `eikon-programming`), WebCTRL graphics/ViewBuilder paths (load `webctrl-platform`), or hardware/wiring selection (load `alc-hardware`). Those skills implement what this skill specifies.
 
@@ -219,9 +222,24 @@ Verify every hardwired point physically (toggle the input, command the output, c
 - **Major**: sequence doesn't perform as specified, affects comfort/energy but not safety (e.g., SAT reset never trims).
 - **Minor**: cosmetic, naming, or documentation issue (e.g., point name mismatch between BAS and as-built).
 
-See `references/commissioning.md` for the full functional-testing methodology, trend-based verification approach, and common deficiencies by system type.
+See `references/commissioning.md` for the full functional-testing methodology, trend-based verification approach, common deficiencies by system type, the formal CxA process (Standard 202/Guideline 0/1.1, OPR/BOD, pre-functional checklists, FPT, seasonal/retro-Cx/MBCx), Automated Controls' internal 100% commissioning standard, the field SOO verification workflow (Section 7), and the SOO simplification technique (Section 8).
 
 ---
+
+## 5.4 Commissioning Quick Reference
+
+| Item | Key detail | Detail |
+|---|---|---|
+| Internal Cx standard | 100% of equipment touched/inspected — not the 10–30% sampling common to 3rd-party CxAs | `references/commissioning.md` §1.2 |
+| Never-locked-out safeties | High Static, Low Static, Freezestat — always functional, even mid-commissioning | `references/commissioning.md` §1.2 |
+| CxA governing documents | ASHRAE Guideline 0 (generic process), Guideline 1.1 (HVAC&R-specific), Standard 202 (OPR/BOD/Cx Plan/FPT/final report, normative) | `references/commissioning.md` §1.1 |
+| PID startup/checkout values | P=2, I=1, D=0, Interval=20 sec — then tune further | `references/commissioning.md` §7.3 |
+| Untuned PID default (red flag) | P=20, I=5, D=0 → essentially bang-bang 0%→100%→0% | `references/commissioning.md` §7.3 |
+| Loop freeze test | Lock OA temp true-point to 30°F, confirm all freeze-protection actions fire | `references/commissioning.md` §7.3 |
+| Lead/standby rotation test | AUTO → kill lead at disconnect → confirm swap + alarm → verify timing | `references/commissioning.md` §7.3 |
+| CT status threshold | Set "True if > Constant" just below actual observed running current | `references/commissioning.md` §7.3 |
+| Field temp sensors | 10K ohm @ 77°F thermistor, not polarity-sensitive | `references/commissioning.md` §7.3 |
+| SOO simplification | 7-step technique: read → chunk → highlight I/O/conditions → flowchart → cut fluff → match to field → 1-page tech summary | `references/commissioning.md` §8 |
 
 ## 6. Worked Example — Applying the Structure to a Short AHU Sequence
 
@@ -246,7 +264,7 @@ This is the level of specificity every SOO section should reach — numeric, bou
 
 - **`references/g36-sequences.md`** — Read when writing or reviewing a Guideline 36 sequence in detail: full VAV terminal unit sequences (cooling-only, reheat, fan-powered, dual-duct), multi-zone VAV AHU sequence, FC1–FC15 fault rules, and alarm suppression hierarchy.
 - **`references/soo-templates.md`** — Read when starting a new SOO from scratch: bracketed-placeholder skeleton templates for VAV AHU, VAV terminal (cooling-only + reheat), chilled water plant, hot water plant, DOAS, and exhaust/lab systems, each following the Section 1 mandatory structure.
-- **`references/commissioning.md`** — Read when building functional test scripts, point-to-point checklists, or reviewing trend data for verification: detailed functional testing approach, trend-based verification techniques, and common deficiencies organized by system type.
+- **`references/commissioning.md`** — Read when building functional test scripts, point-to-point checklists, or reviewing trend data for verification: detailed functional testing approach, trend-based verification techniques, common deficiencies organized by system type, the formal CxA process (§1.1: Standard 202/Guideline 0/1.1, OPR/BOD, design/submittal review, pre-functional checklists, FPT, seasonal/retro-Cx/MBCx), Automated Controls' internal 100% commissioning standard (§1.2), the field SOO verification workflow (§7: Logic-page checks, PID startup values, loop freeze test, lead/standby rotation test, CT status setup), and the 7-step SOO simplification technique (§8).
 
 ## Common Mistakes
 
@@ -258,3 +276,7 @@ This is the level of specificity every SOO section should reach — numeric, bou
 - Omitting override/force-testing capability from the point list, then discovering during commissioning that a required functional test can't be performed.
 - Letting non-condensing hot-water reset curves get applied to condensing boilers — verify return water temperature actually drops below ~130°F for the sequence to deliver the claimed efficiency.
 - Skipping the "Notes/Assumptions" section — undocumented assumptions about unselected equipment become disputes at submittal review.
+- Leaving a PID loop at its untuned default (P=20, I=5, D=0) and mistaking the resulting bang-bang 0%→100%→0% behavior for a working loop — always set startup/checkout values (P=2, I=1, D=0, 20-second interval) and verify modulation before calling a loop commissioned.
+- Assuming a lead/standby (or lead/lag) system rotates on failure because the logic "looks right" on the Logic page — always run the disconnect-level failure test and confirm both the swap and the alarm.
+- Sampling equipment at a 3rd-party-CxA-style 10–30% rate on Automated Controls' own scope — the internal standard is 100%, and wiring/calibration issues are expected to be resolved before any 3rd-party Cx agent arrives.
+- Treating SOO simplification as optional busywork — skipping the chunk/highlight/flowchart steps on a dense submittal-length sequence is how field mismatches (Step 6) go undetected until a functional test fails.

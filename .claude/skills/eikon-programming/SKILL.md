@@ -1,9 +1,9 @@
 ---
 name: eikon-programming
-description: "Guides authoring and reviewing EIKON graphical control logic for Automated Logic (ALC) BAS controllers — microblock catalog, ZN program requirements, ZS/RS sensor programming, naming conventions, and Live GFB debugging. Use when the user mentions EIKON, microblock, GFB, control program, ZN program, sensor binder, ASVI, BSVI, Rnet sensor, ZS sensor, time clock microblock, trend/alarm microblock, PID microblock, or logic review. Covers INPUTS-LOGIC-OUTPUTS flow, reusable-logic philosophy, and a logic review checklist. Does not cover WebCTRL server/database/graphics administration — see webctrl-platform for that."
+description: "Guides authoring and reviewing EIKON graphical control logic for Automated Logic (ALC) BAS controllers — microblock catalog, ZN program requirements, ZS/RS sensor programming, naming conventions, field PID tuning, offset vs. calibration, Sequence of Operations (SoO) simplification, commissioning-time logic-page checks, and Live GFB debugging. Use when the user mentions EIKON, microblock, GFB, control program, ZN program, sensor binder, ASVI, BSVI, Rnet sensor, ZS sensor, time clock microblock, trend/alarm microblock, PID microblock, PID tuning, sensor offset, calibration, sequence of operations, SoO, lead/lag, lead/standby, or logic review. Covers INPUTS-LOGIC-OUTPUTS flow, reusable-logic philosophy, field tuning standards, and a logic review checklist. Does not cover WebCTRL server/database/graphics administration — see webctrl-platform for that."
 metadata:
   author: JeffJenkinsBAS
-  version: '1.0.0'
+  version: '1.1.0'
 ---
 
 # EIKON Graphical Logic Programming
@@ -15,6 +15,9 @@ Use this skill when authoring, reviewing, or debugging EIKON control-program log
 - Building a new **control program** (ZN, AHU, chiller plant, etc.) from scratch
 - Adding or wiring a **microblock** (AI/BI/AO/BO, setpoint, time clock, airflow, trend, alarm, PID)
 - Setting up a **ZS/RS zone sensor** (Rnet, sensor binder, ASVI/BSVI)
+- **Tuning a PID loop** in the field, or deciding whether a sensor needs an **offset vs. actual calibration**
+- **Simplifying a written Sequence of Operations (SoO)** before programming or commissioning against it
+- Running **logic-page commissioning checks** (requests/run conditions, lead/lag vs. lead/standby, status proof, loop monitor)
 - Reviewing existing logic for **missing safeties, occupancy gaps, or unclear interlocks**
 - Debugging a running program using **Live GFB**
 - Deciding on **naming conventions** or whether logic is getting too complex
@@ -52,7 +55,7 @@ Design every program so a technician can trace a signal left to right without ju
 | **Airflow (VAV)** | VAV-specific airflow calculation/control block | CFM calculation from velocity pressure, min/max airflow limiting |
 | **Trend** | Logs a value on a schedule or COV basis | Historical data for FDD, commissioning, reporting |
 | **Alarm** | Evaluates a condition and raises/clears an alarm state | High/low limit, sensor failure, comm loss |
-| **PID** | Proportional-Integral-Derivative control loop | Valve/damper modulation, discharge air temp control |
+| **PID** | Proportional-Integral-Derivative control loop | Valve/damper modulation, discharge air temp control. Field starting values **P=2, I=1, D=0** (20-sec interval) — default/untuned values are **P=20, I=5, D=0** and behave like open/close, not modulation. See Field PID Tuning below. |
 | **BACnet Multi-state Value Parameter/Status** | 20-state BACnet object for mode/status representation | Equipment mode (Off/Heat/Cool/Auto), fault status |
 | **Sensor Binder** | Binds an Rnet sensor's values into the program | ZS/RS zone sensor integration |
 | **ASVI / BSVI** | Analog/Binary Sensed Value Input — pulls a specific value off a bound sensor | Zone temp from ZS sensor, occupancy button state |
@@ -103,6 +106,20 @@ If a job needs more than 5 ZS sensors on one Rnet trunk, split them across **mul
 - Match program names to the Geographic Tree equipment name in SiteBuilder so a technician can correlate WebCTRL navigation directly to the EIKON program without guessing.
 - Name custom/nested microblocks descriptively enough that another technician can tell what's inside without opening it (`STAGING_3STAGE_DX`, not `CustomBlock1`).
 
+## Offset vs. Calibration
+
+A static **offset** is not the same as a **calibration**, and treating one as the other is a common field mistake. Example: a room is actually 69.6°F but the sensor shows 72.5°F. A −2.9°F offset only fixes the reading at that single moment/temperature — thermistors are nonlinear, so a fixed offset shifts the whole curve and makes every other point on the range wrong (sometimes reversing error direction as the real temperature diverges further from the offset point).
+
+**Diagnose before adjusting:** the most common root cause of a "bad" reading is air infiltration behind the sensor (exterior walls, unsealed sheetrock, poorly insulated boxes) — not sensor failure. Pull the sensor and compare backplate temp to room temp; if they differ significantly, seal the wall penetration, add insulation, or relocate the sensor rather than offsetting around the symptom. Only apply an offset after verifying sensor type, wiring, airflow, and installation — and only as a last-resort, minor, permanent correction.
+
+**In the I/O Points page**, the **Offset** field allows fine calibration of an analog point's present value. Use it as a true calibration correction validated against a reference instrument (temp gun within ±2°F is the standard field check) — never as a shortcut around an installation problem. See `references/field-tuning-and-commissioning.md` for the full diagnostic procedure and the CO2-sensor-specific calibration notes.
+
+## Field PID Tuning
+
+**Startup/checkout starting values: P=2, I=1, D=0, 20-second interval** — then tune from there for the specific loop. **Default (untuned) values are P=20, I=5, D=0**, which produce essentially open/close (0%→100%→0%) behavior with little to no real modulation; that bang-bang-like pattern is the tell-tale sign of an untuned loop. **Tune every PID in every program** before turnover — never leave a loop at default values.
+
+Quick procedure: disable D → raise P until the output just responds to a PV change, then cut that gain 50% → enable I at a small value and double it until oscillation appears, then cut it 50% → fine-tune P/I together → test under varying load/setpoint conditions. In BAS, P and I alone are sufficient in the large majority of loops; D is rarely needed. See `references/field-tuning-and-commissioning.md` for the full step-by-step tuning procedure and fast-vs-slow process variable guidance.
+
 ## Reusable-Logic Philosophy
 
 **"Slow is smooth, smooth is fast."** Build logic that is:
@@ -130,6 +147,34 @@ This live-values-on-every-wire approach is considered best-in-class among BAS pl
 
 See `references/debugging-live-logic.md` for a structured Live GFB workflow and a catalog of common logic bugs with diagnosis steps.
 
+## Sequence of Operations (SoO) Simplification
+
+Convoluted written SoOs slow down both programming and commissioning. Before wiring logic against a dense SoO paragraph, run it through this 7-step simplification pass:
+
+1. **Read it once without stressing** — just grasp the equipment, general behavior, and on/off/modulate timing.
+2. **Break into logical chunks** — Start-up/Initialization; Occupied vs. Unoccupied; Normal Operation; Setpoint Control; Economizer/Free Cooling; Safety/Fault Modes; Shutdown.
+3. **Highlight Inputs, Outputs, Conditions.** Example: *"The supply fan shall operate when the system schedule is occupied and the mixed air temperature is below 80°F and the fire alarm is not active"* → *"Fan ON if: Schedule = Occupied; Mixed air temp < 80°F; Fire alarm NOT active."*
+4. **Create a flowchart/step list** of the decision sequence.
+5. **Cross out fluff/fancy wording** — reword in plain language (e.g., "utilize integrated economizer logic based on differential enthalpy" → "use free cooling if outside air is cooler and dryer than return air").
+6. **Match what you read to what you see** — walk the system, verify sensors/safeties/sequences match the graphics/field, flag mismatches to the PM and PE.
+7. **Write a 1-page "Tech Summary"** in your own words for startup/troubleshooting reference and to share with other technicians or the building operator.
+
+Always ask the Project Engineer to walk through the intended logic before programming — SoOs are open to interpretation, and the as-programmed behavior may legitimately differ from a literal reading. See `references/field-tuning-and-commissioning.md` for the full method with worked examples and a sample Tech Summary.
+
+## Logic-Page Commissioning Checks
+
+When verifying that a program matches its SoO during commissioning (Cx Step 5 in the `field-commissioning` skill), watch the live **Logic** tab for these specific things — this is the first-time-verification companion to Live GFB bug-hunting above:
+
+- **Requests and Run Conditions** — confirm request/total/min-max blocks correctly pull values from "children" modules (see Source Trees in `webctrl-platform`); the **Run Cmnd BV microblock** should show ON only when conditions are actually met.
+- **Freeze protection test** — with the system not running, lock the outside air temp (true point) to **30°F** to force pumps into freeze protection mode; this is a standard technique for testing any OA-temp-dependent logic on demand.
+- **Loop Monitor** — verify loop supply and return temps read correctly and threshold/alarm blocks have correct trigger values.
+- **VFD Pressure Control** — verify DP reading accuracy and PID function using the field tuning standard above.
+- **Lead/Lag vs. Lead/Standby** — verify which one is actually implemented; design engineers frequently mislabel a lead/standby design as "lead/lag." Test failure/rotation by placing logic in AUTO, killing the lead unit at the disconnect, and confirming the standby/lag unit takes over with an alarm generated.
+- **Status proof** — confirm CT wiring/assignment, lock the output to force a run condition, and verify the "True if > Constant" status threshold is set just below the actual running amperage.
+- **Temperature sensors** — most are **10K ohm @ 77°F thermistor**; verify sensor labels match actual function (a point labeled "Supply Temp" should actually read supply temp).
+
+See `references/field-tuning-and-commissioning.md` for the complete checklist with test procedures for each item.
+
 ## Logic Review Checklist
 
 Before signing off on any control program (new build or revision), check for:
@@ -142,6 +187,10 @@ Before signing off on any control program (new build or revision), check for:
 - [ ] **ZS sensor count** — confirm no single program addresses more than 5 ZS sensors.
 - [ ] **Polling vs. COV** — flag any point using fixed-interval polling that could be converted to confirmed COV.
 - [ ] **Naming** — every microblock/program name should be descriptive and match the Geographic Tree equipment name.
+- [ ] **PID tuning** — every PID loop moved off the P=20/I=5/D=0 default and tuned toward/from the P=2/I=1/D=0 field starting point; no loop showing open/close (0%→100%→0%) bang-bang behavior.
+- [ ] **Offset misuse** — no analog point offset was applied as a substitute for diagnosing an installation/airflow problem; offsets are validated against a reference instrument (±2°F for temp).
+- [ ] **Lead/Lag vs. Lead/Standby labeling** — confirm which is actually implemented and that it matches what's documented; verify failure/rotation was tested, not just configured.
+- [ ] **Locked values and temporary parameter changes** — check the Locked Values report, and manually confirm every delay timer/parameter changed for testing has been reverted (no report catches these).
 
 ## Common Mistakes
 
@@ -154,8 +203,14 @@ Before signing off on any control program (new build or revision), check for:
 - Leaving default/auto-generated microblock names in place — makes both Live GFB debugging and future revisions slower for the next technician.
 - Missing safety logic (freeze, high-limit, comm-loss alarm) because the happy-path sequence was built first and safeties were never added afterward.
 - Overloading a ZS sensor's Home Screen with every available data point instead of keeping it simple and pushing detail to Info/Diagnostic screens.
+- **Applying a sensor offset instead of diagnosing the root cause** (typically air infiltration behind the sensor) — masks the real problem and drifts further wrong as conditions change.
+- **Leaving a PID loop at the P=20/I=5/D=0 default** — produces open/close behavior mistaken for a "working" loop; always tune from the P=2/I=1/D=0 field starting point.
+- **Programming directly from a dense written SoO without simplifying it first** — leads to misread conditions; run the 7-step simplification pass and confirm intent with the PE before wiring logic.
+- **Mislabeling a lead/standby design as "lead/lag"** (or vice versa) and never testing failure/rotation — the equipment may not actually swap over when the lead unit fails.
+- **Forgetting to revert a locked value or temporary delay/parameter change** used during commissioning testing — there is no report that catches forgotten delay/parameter changes (only a Locked Values report for locks).
 
 ## Reference Files
 
 - `references/microblock-patterns.md` — common logic patterns as pseudo-logic: occupancy arbitration, setpoint with deadbands, staging, resets, safety interlocks. Read this when building a new sequence and want a proven pattern rather than designing from scratch.
 - `references/debugging-live-logic.md` — structured Live GFB workflow, simulate/override techniques, and a catalog of common logic bugs with diagnosis steps. Read this when troubleshooting a running program or training a technician on Live GFB.
+- `references/field-tuning-and-commissioning.md` — full offset-vs-calibration diagnostic procedure, the complete PID field tuning standard and step-by-step tuning procedure, the 7-step SoO simplification method with worked examples, and the full logic-page commissioning checklist (run conditions, freeze test, loop monitor, VFD pressure control, lead/lag vs. lead/standby test procedure, status/CT check, temperature sensor check). Read this before field tuning, before simplifying an SoO, or before running commissioning-time logic checks.

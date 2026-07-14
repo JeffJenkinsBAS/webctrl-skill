@@ -4,6 +4,8 @@
 
 EIKON's Live Graphic Function Block view shows **real-time values on every wire and inside every microblock** of a running control program, in place, with no separate debug/simulation mode required. This is consistently cited by field technicians as ALC's strongest troubleshooting advantage over competing platforms — click the **Logic** tab on any equipment and click any microblock to see live detail ([r/BuildingAutomation field confirmation](https://www.reddit.com/r/BuildingAutomation/comments/1bgkyos/automated_logic_question/)).
 
+This file covers **bug-hunting** on an already-running program. For **first-time verification** that a new/revised program matches its Sequence of Operations (requests/run conditions, freeze test, loop monitor, VFD pressure control, lead/lag vs. lead/standby, status/CT check, temp sensor check), see the Logic-Page Commissioning Checks section in the main SKILL.md and the full checklist in `references/field-tuning-and-commissioning.md`.
+
 ## Structured Debugging Workflow
 
 1. **Start at the symptom, not the program start.** If a valve isn't modulating, open the Logic tab and go straight to the AO microblock driving that valve — read its current commanded value first.
