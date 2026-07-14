@@ -163,6 +163,133 @@ Technician-ready reference compiled from Automated Logic Technical Instructions 
   - Always check the serial number prefix (via "To get the G5CE's serial number" in the device's controller setup pages) before planning an ARCNET integration on a G5CE — the driver/setup pages will only display communication options the specific unit actually supports.
   - PROT485 surge protection required at EIA-485 entry/exit points; single 2A/250 Vac fuse.
 
+
+## OFRTR-E2-S2 — OptiFlex BACnet Router (Gen5)
+- **I/O:** None — pure BACnet router/BBMD, no control programs, no I/O.
+- **Network:** Eth0/Eth1 10/100 (BACnet/IP, BACnet/IPv6, BACnet/Ethernet, BACnet/SC — dual switched ports with fail-safe pass-through); Port S1 (ARCNET 156 kbps or MS/TP 9.6–115.2 kbps — one protocol at a time); Port S2 (MS/TP only, 9.6–115.2 kbps); USB Service Port.
+- **Power:** 24 Vac ±10%, 50 VA or 24 Vdc ±10%, 18 W.
+- **Addressing:** No rotary switches — Gen5 platform, software-addressed only via the controller setup web pages. ARCNET MAC range 1–254; MS/TP MAC range 0–127.
+- **Memory:** 8 GB eMMC + 512 MB DDR3 (120 MB available); ARM Cortex-A8 600 MHz; minimum WebCTRL v9.0.
+- **Field gotchas:**
+  - **No matching capability-matrix row exists for OFRTR-E2-S2** — treat capacity/limits as PDF-sourced only until ACI verification closes this gap. Do not cite matrix-confirmed numbers for this part.
+  - Pure router — no control programs, no Rnet, no Act Net, no I/O Bus/Xnet. Don't cascade multiple OFRTR-E2-S2 units on the same ARCNET segment.
+  - BACnet/SC support is **failover-hub-only** — supports up to 10 connections, requires a primary cloud hub; don't spec it as a full BACnet/SC hub replacement.
+  - Fuse: 250 Vac 3A, 5x20mm. Factory reset via DSC button.
+  - Only Port S1 supports ARCNET; Port S2 is MS/TP-only — mirrors the G5RE/OFISO-E2 port pattern.
+
+## OFISO-E2 — OptiFlex Network Isolator (Gen5)
+- **I/O:** None — network isolation router, no control programs.
+- **Network:** **Primary Ethernet port** (10/100, faces the customer/WebCTRL server network — BACnet/IP, BACnet/Ethernet); **Isolated Ethernet port** (10/100, BACnet/IP only, faces ACI's own private controller network — **not pingable or IP-discoverable from the Primary side**); Port S1 (ARCNET or MS/TP); Port S2 (MS/TP only); USB Service Port.
+- **Power:** 24 Vac ±10%, 50 VA or 24 Vdc ±10%, 18 W.
+- **Addressing:** No rotary switches — Gen5 platform, software-addressed via setup web pages. ARCNET MAC 1–254; MS/TP MAC 0–127.
+- **Memory:** 8 GB eMMC + 512 MB DDR3 (120 MB available); minimum WebCTRL v9.0.
+- **Field gotchas:**
+  - **Field-use purpose (matrix-confirmed): "used to separate customer IP network from our own IP network. Routes BACnet traffic back to server."** The **Isolated Port** is ACI's private controller network; the **Primary Port** is the customer/WebCTRL-server-facing network.
+  - The Isolated Port has no IP connectivity back to the Primary Port — it only routes BACnet traffic through the device, not general IP traffic. Never treat the Isolated Port as a normal LAN drop.
+  - If running a DHCP server on the Isolated Port, the device's own IP must fall **outside** its own DHCP scope.
+  - Some BACnet functionality is intentionally disabled on the Isolated Port — confirm expected behavior against the current TI before troubleshooting a "missing" feature there.
+
+## OFINT-E2 — OptiFlex Integration Router (Gen5)
+- **I/O:** None — runs control programs and routes/gateways third-party protocols; no local I/O.
+- **Network:** Eth0/Eth1 10/100 (BACnet/IP, BACnet/IPv6, BACnet/Ethernet, BACnet/SC, plus IP-based third-party gateway traffic — shared interface); Port S1 (ARCNET, MS/TP, or third-party serial protocol — one at a time); Port S2 (MS/TP or third-party serial protocol — one at a time); **Rnet terminal — FUTURE USE ONLY.**
+- **Power:** 24 Vac ±10%, 50 VA or 24 Vdc ±10%, 18 W.
+- **Addressing:** No rotary switches — Gen5 platform, software-addressed. ARCNET MAC 1–254 (S1 only); MS/TP MAC 0–127 (S1 or S2).
+- **Memory:** Minimum WebCTRL v9.0; max 999 control programs; 12,000 BACnet objects; **5,000-point shared FlexPoint pool** (100 built-in + up to 4,900 purchasable) covering **BACnet third-party AND Modbus integration combined**, not per-protocol.
+- **Field gotchas:**
+  - **MANDATORY — never document or wire the Rnet terminal as usable.** Both the TI and the ACI capability matrix agree: "the Rnet terminal is labeled for future use and should not be exposed as a usable Rnet connection in the training library." No ZS sensor, Equipment Touch, or OptiPoint should ever be wired there.
+  - Gateways Modbus, SNMP, N2 Open, KNX, and M-Bus in addition to native BACnet routing — confirm which driver is installed (Gen5 `drv_gen5` vs. legacy `drv_fwex`) before following any setup procedure, since the two driver families differ.
+  - The 5,000-point FlexPoint pool is **shared** across all active third-party integrations on the device — a job running both a BACnet gateway and a Modbus gateway draws from the same combined pool, not two separate 5,000-point allowances.
+  - S1 and S2 each run exactly one protocol at a time — plan segment assignment before wiring, not after.
+
+## OFBBC-A — OptiFlex BACnet Building Controller (I/O-Expandable)
+- **I/O:** None built-in — full I/O comes from expanders (distinct from plain OFBBC by driver family: OFBBC-A uses `drv_fwex`, not the Gen5 `drv_gen5` line).
+- **Network:** Eth0 10/100 (BACnet/IP, BACnet/Ethernet, Modbus TCP); Port S1 (ARCNET/MS/TP/Modbus serial); Port S2 (MS/TP/Modbus serial); Rnet (up to 15 sensors + 1 touch device, 12 Vdc/62.5 mA); I/O Bus (up to 9 wired FIO expanders) + Xnet (up to 6 legacy MEx expanders) — **9 combined expander maximum**; routes, runs control programs, BBMD, FDR, DHCP.
+- **Power:** 24 Vac ±15%, 50 VA or 26 Vdc ±10%, 15 W.
+- **Addressing:** **3 physical rotary switches** (unlike the Gen5 router/isolator/integration-router family above, which has none). Default IP = `192.168.168.x`, where x = rotary value 1–253 (rotary 0 → .1, rotary 255 → .253). **Do not set the rotary switches to 254.**
+- **Memory:** 8 GB eMMC + 512 MB DDR3 (22 MB available); minimum WebCTRL v6.5; max 999 control programs; 12,000 BACnet objects; 1,500 third-party BACnet points + 200 Modbus points = 1,700 combined (matrix-confirmed, no conflict with TI).
+- **Field gotchas:**
+  - Fuses: 2A at the device, 4A at the I/O Bus edge connector — not interchangeable.
+  - Factory reset: set all 3 rotary switches to **911**.
+  - Not the same part as plain OFBBC (already documented above) or the Gen5 OFISO-E2/OFINT-E2/OFRTR-E2-S2 family — do not mix driver-setup procedures between them.
+
+## OFHI — OptiFlex Integrator (I/O-less sibling of OFBBC-A)
+- **I/O:** None — same footprint as OFBBC-A minus the I/O Bus/Xnet expander capability.
+- **Network:** Eth0 10/100 (BACnet/IP, BACnet/Ethernet; BBMD on up to 2 IP networks; FDR; DHCP); Port S1 (ARCNET/MS/TP/Modbus serial); Port S2 (MS/TP/Modbus serial); Rnet (up to 15 sensors + 1 touch device, 12 Vdc/62.5 mA); Modbus gateway (master/slave serial or server/client TCP).
+- **Power:** 24 Vac ±15%, 50 VA or 26 Vdc ±10%, 15 W.
+- **Addressing:** 3 physical rotary switches, same `192.168.168.x` scheme as OFBBC-A (x = rotary 1–253; never set to 254).
+- **Memory:** 16 GB eMMC + 256 MB DDR3 (22 MB available); minimum WebCTRL v6.5; max 999 control programs; 12,000 BACnet objects; 1,500 third-party BACnet points + 1,000 Modbus points = 2,500 combined (matrix-confirmed).
+- **Field gotchas:**
+  - No I/O Bus, no Xnet — cannot host FIO or MEx expanders at all. Don't confuse with OFBBC-A, which can.
+  - Single fuse: 250 Vac 2A (no I/O edge-connector fuse, since there's no I/O Bus).
+  - Not the same part as **OFHI-A** (already documented above, Gen5-adjacent) — verify exact part number/driver before applying setup steps.
+
+## OF022-E2 — Advanced Application Controller (Compact Equipment Controller)
+- **I/O:** 2 universal inputs, 2 analog outputs — **no binary output, no universal output, and no Act Net port at all.**
+- **Network:** Eth0/Eth1 10/100 (BACnet/IP only — no MS/TP, no Modbus at the controller level); Rnet (up to 5 sensors + 1 touch device, 12 Vdc/260 mA).
+- **Power:** 24 Vac ±10%, 50 VA or 24 Vdc ±10%, 18 W.
+- **Addressing:** No rotary switches — addressed via USB Comm/Service port and controller setup pages, like the rest of the zone family.
+- **Memory:** Max 1 control program; **minimum WebCTRL v8** (higher than every other equipment controller in this family, which run on WebCTRL v7); driver `drv_fwex 107-xx-xxxx+`.
+- **Field gotchas:**
+  - **MATRIX CORRECTION:** third-party BACnet point limit is **25**, not the 1,500 figure that appears elsewhere in some PDF material — the ACI capability matrix is authoritative here; use 25.
+  - No expander support (no I/O Bus, no Act Net) — this is the smallest, most stripped-down controller in the "683 family" lineage.
+  - Because it needs WebCTRL v8 minimum, don't assume it will bind on a job still running WebCTRL v7 just because its siblings (OF683/OF561T) do.
+
+## OF683-E2 — Full Equipment Controller (BACnet/IP only)
+- **I/O:** 8 universal inputs; 2 analog outputs; 6 binary outputs in 2 banks of 3 (3.75 A/30 Vac-Vdc, 100 VA/4.2 A Class 2 per bank); 1 Universal Output (DIP-selectable Analog/Binary/PWM analog).
+- **Network:** Eth0/Eth1 10/100 (BACnet/IP only — **the only member of the 683 family with zero serial ports**, no MS/TP, no Modbus); Rnet (5 sensors + 1 touch device, 12 Vdc/260 mA — use the main spec-table current rating, not a lower figure that appears in a caution box elsewhere in the PDF); Act Net (5 addresses: 1 = built-in ALC actuator, 2–3 = ZASF-A, 4–5 = OptiPoint Smart Valve).
+- **Power:** 24 Vac ±15%, 50 VA or 24 Vdc, 20 W.
+- **Addressing:** No rotary switches — USB Comm/Service port + controller setup pages.
+- **Memory:** Max 1 control program; 100 third-party BACnet points (BACnet/IP only, no MS/TP points — matrix-confirmed, matches TI); minimum WebCTRL v7.
+- **Field gotchas:**
+  - No expander support — no I/O Bus port on this variant.
+  - If Modbus or MS/TP bridging is needed on this I/O footprint, step up to **OF683T-E2**; if you also need an OFX48 I/O expander, use **OF683XT-E2** instead.
+  - Rnet current draw: use **260 mA**, not 210 mA (a lower figure appears in a PDF caution box but conflicts with the main spec table — treat 260 mA as correct).
+
+## OF683T-E2 — Full Equipment Controller with Modbus/MS/TP
+- **I/O:** Same as OF683-E2 — 8 UI, 2 AO, 6 BO (2 banks of 3), 1 UO.
+- **Network:** Eth0/Eth1 10/100 (BACnet/IP); Port S1 (EIA-485, Modbus RTU — settable EON switch, MS/TP also supported on S1 per matrix); Port S2 (isolated EIA-485 Modbus, **permanently terminated — must sit at the physical end of its segment**); Rnet (up to 10 sensors, still max 5 per program); Act Net (5 addresses, same 1/2-3/4-5 reservation as OF683-E2).
+- **Power:** 24 Vac ±15%, 50 VA or 24 Vdc, 20 W.
+- **Addressing:** No rotary switches — USB Comm/Service port + controller setup pages.
+- **Memory:** Max **2** control programs (double OF683-E2); 300 third-party BACnet points + 80 Modbus points = 380 combined (matrix-confirmed); minimum WebCTRL v7.
+- **Field gotchas:**
+  - Port S2 is **permanently terminated at the factory** — plan segment topology so it lands at a physical segment end; you cannot disable termination on S2.
+  - No expander support (no I/O Bus port — that capability is reserved for the -XT variant).
+  - **UUKL UL864 10th-edition listed** — see `references/uukl-smoke-control.md` for SCS-specific deltas (Modbus S1 minimum baud, Rnet/Act Net SCS restrictions) before specifying on a smoke-control job.
+
+## OF683XT-E2 — Full Equipment Controller with I/O Bus Expansion
+- **I/O:** Same as OF683-E2/OF683T-E2 — 8 UI, 2 AO, 6 BO (2 banks of 3), 1 UO.
+- **Network:** Eth0/Eth1 10/100 (BACnet/IP); Port S1 (Modbus serial; **matrix marks MS/TP = Yes on S1** even though the PDF port table shows only a "Modbus Serial" row with no separate MS/TP entry — matrix wins, but field-verify actual behavior before relying on simultaneous MS/TP+Modbus on S1); dedicated **I/O Bus port for exactly ONE OFX48 expander** (replaces the Port S2 found on OF683T-E2 — **only 683-family member with I/O expansion**); Rnet (up to 10 sensors, 5 per program max); Act Net (5 addresses: 1 = ALC actuator, 2–3 = ZASF-A — **matrix does NOT list a 4–5 OptiPoint Smart Valve reservation for this part**, unlike OF683-E2/OF683T-E2; do not assume OptiPoint support at addresses 4–5 on the XT variant).
+- **Power:** 24 Vac ±15%, 50 VA or 24 Vdc, 20 W.
+- **Addressing:** No rotary switches — USB Comm/Service port + controller setup pages. OFX48 expander uses its own I/O Bus addressing (single-expander only, no address selection needed).
+- **Memory:** Max 2 control programs; 300 third-party BACnet points + 50 Modbus points = 350 combined (matrix-confirmed); minimum WebCTRL v7.
+- **Field gotchas:**
+  - **OFX48 is compatible ONLY with OF683XT-E2** — not with the FIO expander family (FIO812u/FIO88u/FIO48u/FIO012u), and not with OFBBC/OF1628/OF028. One host, one expander, no exceptions.
+  - **Do not assume OptiPoint Smart Valve support at Act Net addresses 4–5** — the standard 5-address reservation text elsewhere in the PDF includes it, but the capability matrix omits it for this specific part; matrix wins.
+  - Some PDF draft material suggests a BACnet profile of B-BC (vs. OF683T-E2's B-AAC) — treat as provisional until confirmed on a specific firmware/TI revision.
+
+## OF561T-E2 — Advanced BIoT Controller (Compact Equipment Controller)
+- **I/O:** 6 universal inputs; **no dedicated analog output** (only 1 Universal Output, DIP-selectable Analog/Binary/PWM); 5 binary outputs in **asymmetric** 2 banks (3 + 2 — unlike the 683 family's symmetric 3+3).
+- **Network:** Eth0/Eth1 10/100 (BACnet/IP); **Port S1 only — no Port S2** (unlike OF683T-E2, which has both) — EIA-485, MS/TP or Modbus RTU, one protocol at a time; Rnet (5 sensors + 1 touch device — not 10; lower than the T/XT 683 variants); Act Net (5 addresses, same 1/2-3/4-5 reservation scheme as the 683 family).
+- **Power:** 24 Vac ±15%, 55 VA or 24 Vdc, 20 W.
+- **Addressing:** No rotary switches — USB Comm/Service port + controller setup pages.
+- **Memory:** Max 1 control program; 300 third-party BACnet points + 50 Modbus points = 350 combined (matrix-confirmed); minimum WebCTRL v7.
+- **Field gotchas:**
+  - Only one serial port total — don't plan a dedicated Modbus-only segment on S2 like you would on OF683T-E2; S1 has to carry whichever single protocol the job needs.
+  - No expander support.
+  - Silkscreened on the board as "Advanced BIoT Controller" — don't be thrown by the label not matching the "OF561T-E2" part-number-based naming used everywhere else.
+
+## FIO812u / FIO88u / FIO48u / FIO012u — I/O Expander Family
+- **I/O:** **FIO812u** = 12 universal inputs, 8 universal outputs. **FIO88u** = 8 universal inputs, 8 universal outputs. **FIO48u** = 8 universal inputs, 4 universal outputs (matrix-corrected — an older assumption of 12 inputs/4 outputs is wrong; both the TI and the ACI matrix now agree on 8/4). **FIO012u** = 12 universal inputs, 0 outputs (input-only).
+- **Network:** I/O Bus only — no Ethernet, no BACnet/IP, no independent network address. Up to **9 FIO expanders per compatible host controller.**
+- **Power:** 24 Vac ±15%, 50 VA or 26 Vdc, 12 W.
+- **Addressing:** Rotary-switch address 1–9, unique per expander on the host's I/O Bus chain; **EON (End-of-Net) switch = Yes only on the last expander in the chain.**
+- **Memory:** N/A (I/O expansion module, no onboard control logic or BACnet objects of its own).
+- **Field gotchas:**
+  - **Host compatibility is strictly limited to the OFBBC/OF1628/OF028 family: OFBBC, OFBBC-NR, OF1628, OF1628-NR, OF028-NR.** The FIO family does **not** host on any of the equipment controllers in this update (OF022-E2, OF683-E2, OF683T-E2, OF683XT-E2, OF561T-E2) — those either have no expansion at all or use the incompatible OFX48/I/O-Bus-single-expander scheme instead.
+  - Two wiring topologies: **direct edge-connector** (carries both power and comm — no external transformer needed) or **I/O Bus port wiring** (comm only — requires its own external Class 2 transformer).
+  - Fuses: 2A at the device, 4A at the edge connector — same rating scheme as OFBBC-A, not interchangeable.
+  - For UUKL/smoke-control applications, **only FIO812u and FIO012u are UUKL-listed** — see `references/uukl-smoke-control.md`.
+
 ---
 
 ## Critical Product Announcements (cross-device)
@@ -171,4 +298,4 @@ Technician-ready reference compiled from Automated Logic Technical Instructions 
 
 ---
 
-*Compiled from Automated Logic Technical Instructions (space files) for OF141-E2, OF253T-E2, OF253A-E2, OF342-E2, OF561-E2, OF1628, OF1628-NR/OF028-NR, OFBBC, OFX48, OFHI-A, OFCSR-E2, G5RE, and G5CE, plus the internal "These products are now UUKL" product notice. Reference [automatedlogic.com](https://www.automatedlogic.com/) for the latest revisions — always verify against the current Partner Community document version before field use.*
+*Compiled from Automated Logic Technical Instructions (space files) for OF141-E2, OF253T-E2, OF253A-E2, OF342-E2, OF561-E2, OF1628, OF1628-NR/OF028-NR, OFBBC, OFX48, OFHI-A, OFCSR-E2, G5RE, G5CE, OFRTR-E2-S2, OFISO-E2, OFINT-E2, OFBBC-A, OFHI, OF022-E2, OF683-E2, OF683T-E2, OF683XT-E2, OF561T-E2, and the FIO812u/FIO88u/FIO48u/FIO012u expander family, plus the internal "These products are now UUKL" product notice and the ACI-verified capability matrix (matrix wins on any conflict with a TI). Reference [automatedlogic.com](https://www.automatedlogic.com/) for the latest revisions — always verify against the current Partner Community document version before field use.*

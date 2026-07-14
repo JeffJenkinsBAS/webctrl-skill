@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "BAS design intelligence for Automated Logic WebCTRL: 10 skills spanning platform administration, EIKON programming, BACnet networking, sequences of operation, HVAC theory, ASHRAE standards, OptiFlex hardware, field commissioning, whole-building system design, and vendor landscape.",
-    "version": "1.1.0"
+    "version": "1.2.0"
   },
   "plugins": [
     {
       "name": "webctrl-skill",
       "source": "./",
       "description": "Professional building-automation controls engineering intelligence for AI coding assistants. Covers Automated Logic WebCTRL, EIKON, ViewBuilder, SiteBuilder, BACnet/IP, MS/TP, ARC156, BACnet/SC, ASHRAE 90.1/62.1/55/135 and Guideline 36, commercial/higher-ed HVAC theory, OptiFlex controller hardware, field commissioning and checkout, whole-building system design and Cx process, and competitive BAS vendor analysis.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "author": {
         "name": "JeffJenkinsBAS"
       },

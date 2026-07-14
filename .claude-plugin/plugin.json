@@ -1,7 +1,7 @@
 {
   "name": "webctrl-skill",
   "description": "Building Automation System (BAS) design intelligence for Automated Logic WebCTRL environments. Ten skills covering WebCTRL platform administration, EIKON graphical programming, BACnet/MS-TP/ARC156 networking, sequences of operation (incl. ASHRAE Guideline 36), HVAC theory and thermodynamics, ASHRAE standards compliance (90.1, 62.1, 55, 135), OptiFlex controller hardware, field commissioning and point-to-point checkout, whole-building system design from SD/DD/CD through TAB and Cx, and BAS vendor competitive landscape. Use when designing, programming, commissioning, or troubleshooting commercial and higher-education building controls.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": {
     "name": "JeffJenkinsBAS"
   },

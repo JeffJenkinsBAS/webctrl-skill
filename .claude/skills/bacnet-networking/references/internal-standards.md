@@ -310,6 +310,19 @@ Navigate to **BACnet Device Settings**: assign a unique Device Instance Number a
 
 ---
 
+## 9. Network Infrastructure Devices (Gen5 OptiFlex)
+
+Four Gen5 OptiFlex parts serve pure network-infrastructure roles (no local I/O). Selection, port capacity, and detailed setup live in the **alc-hardware** skill (`references/port-capability-matrix.md` and `references/device-details.md`) — this is a placement/architecture-level summary only.
+
+- **OFRTR-E2-S2** — Pure BACnet router (Gen5 platform). No control programs, no I/O. Use where you need a straightforward bridge between an MS/TP or ARC156 field segment and BACnet/IP with no Modbus/Rnet/gateway requirement. No ACI-verified capability-matrix row exists yet for this device — treat any specific point-count/port limit as unverified until confirmed. Full specs: **alc-hardware**.
+- **OFISO-E2** — Network isolation router. Its defining architectural role is separating the customer's IT/IP network from ACI's own private controller network — it routes BACnet traffic between the two rather than bridging them into one flat segment. Place it at the network boundary where a customer's IT department requires logical/physical separation from the BAS controller network. Never treat its two Ethernet ports as interchangeable — the **Isolated** port carries ACI's private network, the **Primary** port faces the customer network/WebCTRL server. Full specs: **alc-hardware**.
+- **OFINT-E2** — Integration router with a 5,000-point shared FlexPoint pool (BACnet + Modbus + third-party gateway protocols such as SNMP/N2/KNX/M-Bus). Use for larger third-party integration jobs that exceed a G5CE's or OFHI-A's Modbus capacity. Runs up to 999 control programs. **Its Rnet terminal is future-use-only and must never be wired as a usable Rnet connection** — do not document or field-wire it as functional. Full specs: **alc-hardware**.
+- **OFCSR-E2** — Compact segment router for lightweight Ethernet-to-ARC156/MS/TP bridging. No Rnet, no Gig-E, no Port S2. Configured entirely via USB Service Port (no rotary switches); supports MS/TP Autobaud if another already-configured device is present on the segment. Use for the smallest/cheapest router need on a segment that doesn't require Modbus or Rnet. Full specs: **alc-hardware**.
+
+**Placement rule of thumb**: if the infrastructure need is pure routing with no I/O, no control logic, and no third-party gateway protocol, start with OFRTR-E2-S2 or OFCSR-E2 (cheapest). If IT-mandated network separation is required, use OFISO-E2. If the job needs a large shared Modbus/third-party point pool beyond G5CE/OFHI-A capacity, use OFINT-E2. Full device selection logic, comparison tables, and expander/host compatibility rules: see the **alc-hardware** skill.
+
+---
+
 ## Cross-References
 
 - Controller-specific wiring limits (Rnet, Act Net, expander buses) and hardware-model wiring tables: **alc-hardware** skill.

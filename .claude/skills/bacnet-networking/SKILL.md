@@ -3,7 +3,7 @@ name: bacnet-networking
 description: "Design and troubleshoot BAS networks: BACnet/IP, MS/TP, ARC156, ARCnet, BACnet/SC, Rnet, and Modbus integration. Use for network architecture (segment sizing, network numbering, router/BBMD placement), addressing (MAC address, device instance), broadcast/unicast traffic, comm loss and duplicate-address troubleshooting, token-passing issues, wiring/termination faults, and WebCTRL console diagnostics (commstat, tracert, count devices). Trigger phrases: BACnet, MS/TP, ARC156, device instance, MAC address, network number, BBMD, foreign device, who-is, COV, router, broadcast storm, comm loss, token passing, duplicate address, BACnet/SC certificate. Skip when the task is EIKON program logic, sequence-of-operation authoring, or ViewBuilder graphics — use eikon-programming or webctrl-platform instead."
 metadata:
   author: JeffJenkinsBAS
-  version: '1.1.0'
+  version: '1.2.0'
 ---
 
 # BACnet Networking
@@ -215,7 +215,7 @@ Run `commstat` before opening a panel. If `commstat` shows the whole segment dow
 - **[references/bacnet-protocol.md](references/bacnet-protocol.md)** — Read when you need the object/service model, BIBBs, device profiles (B-BC/B-AAC/B-ASC/B-OWS), PICS review, BTL listing verification, Who-Is/I-Am and BBMD/foreign device registration mechanics, or the full BACnet address-formatting syntax (device/network/object/property/priority) for third-party integration microblocks.
 - **[references/bacnet-sc.md](references/bacnet-sc.md)** — Read when a spec calls for BACnet Secure Connect, when scoping a cybersecurity-reviewed campus/healthcare job, or when asked about TLS certificates, hub-and-spoke topology, and current BACnet/SC support status in the ALC/OptiFlex ecosystem.
 - **[references/mstp-troubleshooting.md](references/mstp-troubleshooting.md)** — Read for deep MS/TP troubleshooting: token-passing mechanics, duplicate MAC symptoms, wiring/termination/biasing/shield-grounding faults, baud mismatches, max device counts, and capturing traffic with Wireshark/MS/TP analyzer tools.
-- **[references/internal-standards.md](references/internal-standards.md)** — Read for the shop's internal MS/TP integration/checkout standards (daisy-chain-only topology, one-trunk-one-bias rule, 38400 baud standard), the Confirmed COV refresh-timer standard, the full Modbus integration guide, ARC156/MS/TP/Ethernet node-count and length limits (incl. the Max Info Frames formula), Ethernet topology tradeoffs (daisy-chain/star/ring), the ARCnet/MS/TP Wireshark capture procedure, and Cimetrics B3075 IP-to-IP router setup. This is the go-to file when standardizing a new job's network settings or preparing a support-case packet capture.
+- **[references/internal-standards.md](references/internal-standards.md)** — Read for the shop's internal MS/TP integration/checkout standards (daisy-chain-only topology, one-trunk-one-bias rule, 38400 baud standard), the Confirmed COV refresh-timer standard, the full Modbus integration guide, ARC156/MS/TP/Ethernet node-count and length limits (incl. the Max Info Frames formula), Ethernet topology tradeoffs (daisy-chain/star/ring), the ARCnet/MS/TP Wireshark capture procedure, Cimetrics B3075 IP-to-IP router setup, and (Section 9) placement guidance for the Gen5 network-infrastructure devices OFRTR-E2-S2/OFISO-E2/OFINT-E2/OFCSR-E2 (full specs live in **alc-hardware**). This is the go-to file when standardizing a new job's network settings or preparing a support-case packet capture.
 
 ---
 
