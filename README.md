@@ -168,6 +168,17 @@ cp -r webctrl-skill/.claude/skills/* ~/.claude/skills/
 
 Verify with `/skills` in Claude Code — you should see all ten skills listed.
 
+### Option 4 — Upload to the Claude app (claude.ai / desktop)
+
+The Claude app's **Upload skill** dialog (Settings → Capabilities → Skills) accepts **one skill at a time** as a `.zip` that contains a `SKILL.md`. Ready-to-upload packages for all ten skills are prebuilt in [`dist/`](dist/):
+
+1. Download the zip for the skill you want (e.g., [`dist/alc-hardware.zip`](dist/alc-hardware.zip)) — use the **Download raw file** button on the file's GitHub page
+2. Drag it into the Upload skill dialog
+3. Repeat for each skill you want
+
+> **Troubleshooting: "SKILL.md must start with YAML frontmatter (---)"**
+> This error means the uploader didn't receive a single-skill package. Do **not** upload the whole-repo ZIP from GitHub's *Code → Download ZIP* button (the skills are nested under `.claude/skills/`, so the uploader can't find a valid `SKILL.md` at the top level), and do not upload `README.md` or a bare `SKILL.md`'s parent folder re-zipped with extra nesting. Use the prebuilt zips in `dist/` — each one has the skill folder at the zip root with `SKILL.md` directly inside it.
+
 ---
 
 ## How the Skills Work
@@ -236,6 +247,9 @@ webctrl-skill/
 ├── .claude-plugin/
 │   ├── plugin.json             # Claude Code plugin manifest
 │   └── marketplace.json        # Marketplace metadata for /plugin install
+├── dist/                       # Prebuilt one-skill-per-zip packages for the Claude app's Upload skill dialog
+├── scripts/
+│   └── build-zips.sh           # Regenerates dist/ zips after any skill change
 ├── LICENSE                     # CC0 1.0 Universal
 └── README.md
 ```
@@ -254,7 +268,8 @@ webctrl-skill/
 
 ## Versioning & Maintenance
 
-- Current version: **1.2.0** (plugin manifest and touched skills share the version)
+- Current version: **1.2.1** (plugin manifest and touched skills share the version)
+- **1.2.1** — Added `dist/` with prebuilt one-skill-per-zip upload packages for the Claude app's Upload skill dialog, `scripts/build-zips.sh` to regenerate them, and an Installation Option 4 with troubleshooting for the "SKILL.md must start with YAML frontmatter" upload error (caused by uploading the whole-repo ZIP instead of a single-skill package). Skill content unchanged
 - **1.2.0** — Integrated the full OptiFlex technical-instruction library into `alc-hardware`: 11 new devices documented (OF022-E2, OF561T-E2, OF683-E2/T/XT, OFBBC-A, OFHI, OFINT-E2, OFISO-E2, OFRTR-E2-S2, FIO expander family), bringing coverage to 24 devices. Added two new reference files: `port-capability-matrix.md` (dealer-verified per-port protocol truth, Act Net reserved addressing, simultaneous-use restrictions, FlexPoint licensing) and `uukl-smoke-control.md` (UL 864 system requirements, timing table, FSCS/FACP requirements, firmware whitelist, per-device smoke-control deltas). Encoded matrix-vs-manual corrections as explicit gotchas (e.g., OF022-E2 verified 25-point BACnet limit, OFINT-E2 Rnet terminal is future-use only). `bacnet-networking` gained a network-infrastructure-devices section (OFRTR-E2-S2, OFISO-E2 isolation architecture, OFINT-E2, OFCSR-E2)
 - **1.1.0** — Added `field-commissioning` (complete field checkout discipline: 5-step commissioning workflow, field connection methods, controller service, LED references) and `bas-system-design` (design-to-turnover lifecycle: mechanical design, controls design engineering, submittal/TAB/Cx process, whole-system integration). Expanded six existing skills with working dealer field standards: server lifecycle and WebCTRL 10 (webctrl-platform), field PID tuning and offset-vs-calibration (eikon-programming), MS/TP integration and COV refresh-timer standards (bacnet-networking), device setup procedures and terminal color codes (alc-hardware), IAQ monitoring and redundancy concepts (hvac-fundamentals), CxA process and field SOO verification (sequences-of-operation)
 - **1.0.0** — Initial release: 8 skills, plugin manifests, README
